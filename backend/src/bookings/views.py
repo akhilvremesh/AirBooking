@@ -1,10 +1,11 @@
+from rest_framework import status
 from rest_framework.generics import GenericAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
 
 from .models import Booking
 from .serializers import BookingCreateSerializer, BookingSerializer
+from .services import cancel_booking
 
 
 class BookingListCreateView(GenericAPIView):
@@ -25,8 +26,10 @@ class BookingListCreateView(GenericAPIView):
         input_serializer.is_valid(raise_exception=True)
         booking = input_serializer.save()
 
-        output_serializer = BookingSerializer(booking)
-        return Response(output_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(
+            BookingSerializer(booking).data,
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class BookingDetailView(RetrieveAPIView):
@@ -39,3 +42,12 @@ class BookingDetailView(RetrieveAPIView):
             .filter(user=self.request.user)
             .select_related("flight")
         )
+
+
+class BookingCancelView(GenericAPIView):
+    serializer_class = BookingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        booking = cancel_booking(user=request.user, booking_id=pk)
+        return Response(BookingSerializer(booking).data)
