@@ -1,11 +1,14 @@
 from django.utils import timezone
 from django.utils.dateparse import parse_date
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Flight
 from .serializers import FlightSerializer
+from .services import get_live_flight_status
 
 
 class FlightSearchView(ListAPIView):
@@ -37,9 +40,7 @@ class FlightSearchView(ListAPIView):
         if flight_date:
             parsed_date = parse_date(flight_date)
             if parsed_date is None:
-                raise ValidationError(
-                    {"date": "Use YYYY-MM-DD format."}
-                )
+                raise ValidationError({"date": "Use YYYY-MM-DD format."})
             queryset = queryset.filter(departure_time__date=parsed_date)
 
         if requested_seats:
@@ -64,3 +65,15 @@ class FlightDetailView(RetrieveAPIView):
     queryset = Flight.objects.all()
     serializer_class = FlightSerializer
     permission_classes = [IsAuthenticated]
+
+
+class FlightLiveStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            flight = Flight.objects.get(pk=pk)
+        except Flight.DoesNotExist:
+            raise NotFound("Flight not found.")
+
+        return Response(get_live_flight_status(flight))

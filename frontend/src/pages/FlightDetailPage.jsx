@@ -13,6 +13,7 @@ function formatPrice(price) {
 
 
 function formatDateTime(value) {
+  if (!value) return "Not available";
   return new Date(value).toLocaleString();
 }
 
@@ -21,7 +22,7 @@ function getErrorMessage(error) {
   const data = error.response?.data;
 
   if (!data) {
-    return "Unable to complete the booking. Please try again.";
+    return "Unable to complete the request. Please try again.";
   }
 
   if (data.detail) {
@@ -38,9 +39,12 @@ export default function FlightDetailPage() {
   const [flight, setFlight] = useState(null);
   const [seats, setSeats] = useState(1);
   const [booking, setBooking] = useState(null);
+  const [liveStatus, setLiveStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [bookingInProgress, setBookingInProgress] = useState(false);
+  const [statusInProgress, setStatusInProgress] = useState(false);
   const [error, setError] = useState("");
+  const [statusError, setStatusError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -53,9 +57,7 @@ export default function FlightDetailPage() {
         const { data } = await api.get(`/flights/${id}/`);
         if (active) setFlight(data);
       } catch (loadError) {
-        if (active) {
-          setError(getErrorMessage(loadError));
-        }
+        if (active) setError(getErrorMessage(loadError));
       } finally {
         if (active) setLoading(false);
       }
@@ -86,6 +88,20 @@ export default function FlightDetailPage() {
     }
   }
 
+  async function handleLiveStatus() {
+    setStatusError("");
+    setStatusInProgress(true);
+
+    try {
+      const { data } = await api.get(`/flights/${id}/live-status/`);
+      setLiveStatus(data);
+    } catch (statusRequestError) {
+      setStatusError(getErrorMessage(statusRequestError));
+    } finally {
+      setStatusInProgress(false);
+    }
+  }
+
   if (loading) {
     return <main className="page-content"><p>Loading flight…</p></main>;
   }
@@ -99,9 +115,7 @@ export default function FlightDetailPage() {
     );
   }
 
-  if (!flight) {
-    return null;
-  }
+  if (!flight) return null;
 
   if (booking) {
     return (
@@ -144,6 +158,37 @@ export default function FlightDetailPage() {
         <p>Status: {flight.status.replace("_", "-")}</p>
         <p>{flight.available_seats} seats available</p>
         <p>Price per seat: {formatPrice(flight.price)}</p>
+
+        <section className="live-status">
+          <button
+            type="button"
+            onClick={handleLiveStatus}
+            disabled={statusInProgress}
+          >
+            {statusInProgress ? "Checking AirLabs…" : "Check live status"}
+          </button>
+
+          {statusError && (
+            <p className="form-error" role="alert">{statusError}</p>
+          )}
+
+          {liveStatus && (
+            <div>
+              <h2>Live status from {liveStatus.source}</h2>
+              <p>Status: {liveStatus.status}</p>
+              <p>
+                Delay: {liveStatus.delay_minutes ?? "Not available"} minutes
+              </p>
+              <p>
+                Live departure:{" "}
+                {formatDateTime(liveStatus.departure_time_utc)}
+              </p>
+              <p>
+                Live arrival: {formatDateTime(liveStatus.arrival_time_utc)}
+              </p>
+            </div>
+          )}
+        </section>
 
         {error && <p className="form-error" role="alert">{error}</p>}
 
