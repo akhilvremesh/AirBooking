@@ -25,3 +25,12 @@
 - **Approval gate:** Pending and rejected users receive distinct login errors; only approved users receive tokens.
 - **Email:** Approval emails run through a Celery task after the database transaction commits.
 - **Local email setup:** Uses the console email backend. Local eager mode runs the task directly because Redis is not installed; Redis-backed background processing still needs to be enabled before final submission.
+
+## Phase 3 — Core APIs
+
+- **Flight search:** Returns future, non-cancelled flights and filters by departure airport, arrival airport, date, and requested seats.
+- **Booking:** The server calculates the total, reserves seats inside a transaction with `select_for_update()`, and marks the simulated payment paid.
+- **Booking privacy:** Users can only list and retrieve their own bookings.
+- **Admin APIs:** User and flight management endpoints require staff permissions; booking stats are aggregated by the backend.
+- **Superusers:** New superusers are approved by default so they can use the JWT-protected admin APIs.
+- **Database:** SQLite is used locally. For production row-level locking with concurrent bookings, use PostgreSQL, which supports `select_for_update()`.
