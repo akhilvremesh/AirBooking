@@ -130,6 +130,7 @@ AUTH_USER_MODEL = "accounts.User"
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://localhost:5175",
 ]
 
 REST_FRAMEWORK = {
@@ -169,3 +170,4 @@ CELERY_TASK_ALWAYS_EAGER = (
     os.getenv("CELERY_TASK_ALWAYS_EAGER", "false").lower() == "true"
 )
 CELERY_TASK_EAGER_PROPAGATES = True
+AIRLABS_API_KEY = os.getenv("AIRLABS_API_KEY", "")
