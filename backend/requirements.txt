@@ -16,6 +16,7 @@ inflection==0.5.1
 jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
 kombu==5.7.0
+packaging==26.3
 prompt_toolkit==3.0.53
 PyJWT==2.15.1
 python-dateutil==2.9.0.post0
