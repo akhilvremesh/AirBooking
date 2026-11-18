@@ -34,3 +34,20 @@
 - **Admin APIs:** User and flight management endpoints require staff permissions; booking stats are aggregated by the backend.
 - **Superusers:** New superusers are approved by default so they can use the JWT-protected admin APIs.
 - **Database:** SQLite is used locally. For production row-level locking with concurrent bookings, use PostgreSQL, which supports `select_for_update()`.
+
+## Phase 4 — Frontend foundation
+
+- **Routing:** React Router manages public, signed-in, and admin routes.
+- **Auth state:** React context restores the current user through `/api/auth/me/`.
+- **Admin role:** The frontend uses the backend's `is_staff` and `is_superuser` response for navigation and route guards; backend permissions remain the security boundary.
+- **API client:** Axios attaches access tokens, refreshes once after a 401, and clears the session if refresh fails.
+- **Login and registration:** Users see approval errors at login and a pending-approval message after registration.
+- **Local setup:** React Router and Axios are frontend dependencies; the backend API base URL defaults to localhost.
+
+## Phase 5 — Booking and dashboards
+
+- **Flight search:** The UI sends airport, date, and seat filters to the backend search endpoint.
+- **Booking flow:** The UI submits only flight ID and seat count; the backend sets the price, payment status, and confirmation.
+- **My Trips and dashboard:** Both display data from the authenticated user’s booking endpoint.
+- **Admin dashboard:** Uses staff-only endpoints for pending approvals, flight management, status updates, and statistics.
+- **Responsive styling:** Shared styles support the search, booking, trip, and admin screens on smaller displays.

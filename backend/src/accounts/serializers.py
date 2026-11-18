@@ -56,3 +56,16 @@ class ApprovedTokenObtainPairSerializer(TokenObtainPairSerializer):
             )
 
         return token_data
+
+class CurrentUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "username",
+            "email",
+            "approval_status",
+            "is_staff",
+            "is_superuser",
+        )
+        read_only_fields = fields
